@@ -138,6 +138,20 @@
         .mb-16 { margin-bottom: 16px; }
         .text-sm { font-size: 12px; }
         .text-muted { color: #6b7280; }
+
+        .demo-banner { background: linear-gradient(135deg, #1e3a5f 0%, #1f2937 100%); border: 1px solid #3b82f6; border-radius: 10px; padding: 20px; margin-bottom: 24px; }
+        .demo-banner .demo-title { font-size: 16px; font-weight: 700; color: #60a5fa; margin-bottom: 8px; }
+        .demo-banner .demo-desc { font-size: 13px; color: #9ca3af; margin-bottom: 16px; line-height: 1.5; }
+        .demo-banner .token-row { display: flex; gap: 8px; }
+        .demo-banner input { flex: 1; padding: 10px 14px; border: 1px solid #374151; border-radius: 6px; background: #111827; color: #fff; font-size: 14px; }
+        .demo-banner input:focus { outline: none; border-color: #3b82f6; }
+        .demo-banner .btn-connect { padding: 10px 20px; background: #3b82f6; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; white-space: nowrap; }
+        .demo-banner .btn-connect:hover { background: #60a5fa; }
+
+        .real-banner { background: linear-gradient(135deg, #065f46 0%, #1f2937 100%); border: 1px solid #10b981; border-radius: 10px; padding: 14px 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+        .real-banner .real-text { font-size: 13px; color: #10b981; font-weight: 600; }
+        .real-banner .btn-disconnect { padding: 6px 14px; background: transparent; border: 1px solid #ef4444; border-radius: 6px; color: #ef4444; font-size: 12px; cursor: pointer; }
+        .real-banner .btn-disconnect:hover { background: #7f1d1d; }
     </style>
 </head>
 <body>
@@ -160,105 +174,84 @@
         let currentPeriod = 30;
         let currentYMetric = 'revenue';
         let currentPage = 'dashboard';
+        let appConfig = { mode: 'mock', has_token: false };
+        let staticMode = false;
         const demoProducts = [
-            {nm_id:12345678, article:'WB-001', name:'Наушники беспроводные TWS', brand:'SoundMax', price:2500, rating:4.5, reviews:234, orders:1567, category:'Электроника'},
-            {nm_id:23456789, article:'WB-002', name:'Чехол для iPhone 15 Pro', brand:'CasePro', price:890, rating:4.2, reviews:567, orders:3421, category:'Электроника'},
-            {nm_id:34567890, article:'WB-003', name:'Кабель USB-C Type-C 2м', brand:'CableTech', price:450, rating:4.7, reviews:892, orders:5678, category:'Электроника'},
-            {nm_id:45678901, article:'WB-004', name:'Повербанк 10000 mAh', brand:'PowerUp', price:1990, rating:4.3, reviews:123, orders:890, category:'Электроника'},
-            {nm_id:56789012, article:'WB-005', name:'Стекло защитное 9H', brand:'ScreenGuard', price:350, rating:4.1, reviews:456, orders:4567, category:'Электроника'},
-            {nm_id:67890123, article:'WB-006', name:'Наушники проводные 3.5мм', brand:'SoundMax', price:790, rating:4.4, reviews:678, orders:2345, category:'Электроника'},
-            {nm_id:78901234, article:'WB-007', name:'Держатель для авто', brand:'AutoMount', price:650, rating:4.6, reviews:345, orders:1890, category:'Электроника'},
-            {nm_id:89012345, article:'WB-008', name:'Зарядное устройство 65W', brand:'PowerUp', price:1490, rating:4.8, reviews:234, orders:1234, category:'Электроника'},
-            {nm_id:90123456, article:'WB-009', name:'Коврик для мыши XL', brand:'DeskPro', price:590, rating:4.0, reviews:123, orders:567, category:'Электроника'},
-            {nm_id:11223344, article:'WB-010', name:'Клавиатура RGB механическая', brand:'KeyMaster', price:3490, rating:4.7, reviews:89, orders:234, category:'Электроника'}
+            {nm_id:1000,name:'Футболка оверсайз',brand:'BrandX',price:2490,rating:4.8,reviews:214,orders:1840,category:'Одежда'},
+            {nm_id:1001,name:'Джинсы классические',brand:'DenimCo',price:4590,rating:4.6,reviews:148,orders:920,category:'Одежда'},
+            {nm_id:1002,name:'Куртка утепленная',brand:'WarmCo',price:7990,rating:4.7,reviews:96,orders:510,category:'Одежда'},
+            {nm_id:1003,name:'Платье вечернее',brand:'StyleUp',price:5490,rating:4.5,reviews:132,orders:760,category:'Одежда'},
+            {nm_id:1004,name:'Рюкзак городской',brand:'UrbanBag',price:3190,rating:4.9,reviews:305,orders:2210,category:'Аксессуары'},
+            {nm_id:1005,name:'Кроссовки беговые',brand:'RunPro',price:6290,rating:4.4,reviews:188,orders:1240,category:'Обувь'},
+            {nm_id:1006,name:'Свитшот хлопок',brand:'CottonLab',price:2890,rating:4.6,reviews:174,orders:1530,category:'Одежда'},
+            {nm_id:1007,name:'Шапка вязаная',brand:'KnitHouse',price:1290,rating:4.3,reviews:87,orders:690,category:'Аксессуары'}
         ];
-        const day = n => {
+        const dateShift = days => {
             const date = new Date();
-            date.setDate(date.getDate() + n);
+            date.setDate(date.getDate() + days);
             return date.toISOString().slice(0, 10);
         };
-        const seq = (count, map) => Array.from({length: count}, (_, i) => map(i));
-        const trend = seq(365, i => ({
-            date: day(i - 364),
-            revenue: 62000 + ((i * 7919) % 88000),
-            orders: 14 + ((i * 37) % 43)
-        }));
-        const pnlTrend = seq(365, i => {
-            const revenue = 70000 + ((i * 6131) % 130000);
-            const fees = Math.round(revenue * (0.12 + (i % 7) / 100));
-            const storage = 1200 + ((i * 173) % 3900);
-            const logistics = 3100 + ((i * 251) % 5200);
-            return {date: day(i - 364), revenue, fees, storage, logistics, profit: revenue - fees - storage - logistics};
+        const makeSeries = days => Array.from({length: days}, (_, i) => {
+            const revenue = 70000 + ((i * 7919) % 130000);
+            const orders = 28 + ((i * 37) % 82);
+            return {date: dateShift(i - days + 1), revenue, orders};
         });
-        const stocks = demoProducts.slice(0, 5).flatMap((p, pi) =>
-            ['Москва', 'Казань', 'Краснодар'].map((warehouse_name, wi) => ({
-                nm_id: p.nm_id,
-                supplier_article: p.article,
-                warehouse_name,
-                stock: 4 + ((pi * 17 + wi * 9) % 96),
-                daysWithoutSales: (pi * 13 + wi * 11) % 61,
-                price: p.price
-            }))
-        );
-        const demo = {
+        const demoTrend = makeSeries(365);
+        const demoPnl = demoTrend.map((d, i) => {
+            const fees = Math.round(d.revenue * (0.13 + (i % 6) / 100));
+            const storage = 4500 + ((i * 211) % 9500);
+            const logistics = 8000 + ((i * 307) % 14000);
+            return {...d, fees, storage, logistics, profit: d.revenue - fees - storage - logistics};
+        });
+        const demoApi = {
+            '/api/config': () => ({mode: 'mock', has_token: false}),
             '/api/dashboard': () => {
-                const totalRevenue = demoProducts.reduce((s, p) => s + p.price * Math.round(p.orders / 10), 0);
-                const totalOrders = demoProducts.reduce((s, p) => s + p.orders, 0);
+                const totalRevenue = demoTrend.slice(-30).reduce((s, d) => s + d.revenue, 0);
+                const totalOrders = demoTrend.slice(-30).reduce((s, d) => s + d.orders, 0);
                 return {
                     summary: {
                         total_revenue: totalRevenue,
                         total_orders: totalOrders,
-                        total_cancelled: 214,
-                        cancel_rate: 3.8,
-                        avg_order_value: totalRevenue / totalOrders,
-                        avg_rating: 4.43,
+                        total_cancelled: Math.round(totalOrders * 0.03),
+                        cancel_rate: 3.0,
+                        avg_order_value: Math.round(totalRevenue / totalOrders),
+                        avg_rating: 4.7,
                         total_reviews: demoProducts.reduce((s, p) => s + p.reviews, 0),
                         active_products: demoProducts.length
                     },
-                    revenue_trend: trend,
-                    top_products: demoProducts.slice(0, 5),
+                    revenue_trend: demoTrend,
+                    top_products: demoProducts.slice().sort((a, b) => b.orders - a.orders).slice(0, 5),
                     recent_orders: []
                 };
             },
             '/api/products': () => ({products: demoProducts}),
-            '/api/analytics/pnl': () => ({
-                summary: {
-                    total_revenue: pnlTrend.reduce((s, d) => s + d.revenue, 0),
-                    total_fees: pnlTrend.reduce((s, d) => s + d.fees, 0),
-                    total_storage: pnlTrend.reduce((s, d) => s + d.storage, 0),
-                    total_logistics: pnlTrend.reduce((s, d) => s + d.logistics, 0),
-                    total_penalties: 14500,
-                    net_profit: pnlTrend.reduce((s, d) => s + d.profit, 0),
-                    margin: 18.6
-                },
-                daily_breakdown: pnlTrend,
-                by_category: [
-                    {category:'Электроника', revenue: 7200000, margin: 15.2},
-                    {category:'Аксессуары', revenue: 4100000, margin: 22.5},
-                    {category:'Другое', revenue: 1200000, margin: 18.0}
-                ]
-            }),
-            '/api/analytics/stocks': () => {
-                const low = stocks.filter(s => s.stock < 10);
-                const slow = stocks.filter(s => s.daysWithoutSales > 30);
+            '/api/analytics/pnl': () => {
+                const totalRevenue = demoPnl.reduce((s, d) => s + d.revenue, 0);
+                const totalFees = demoPnl.reduce((s, d) => s + d.fees, 0);
+                const totalStorage = demoPnl.reduce((s, d) => s + d.storage, 0);
+                const totalLogistics = demoPnl.reduce((s, d) => s + d.logistics, 0);
+                const profit = totalRevenue - totalFees - totalStorage - totalLogistics;
                 return {
-                    summary: {
-                        total_stock: stocks.reduce((s, i) => s + i.stock, 0),
-                        total_value: stocks.reduce((s, i) => s + i.stock * i.price, 0),
-                        avg_days_without_sales: 22.4,
-                        low_stock_count: low.length,
-                        slow_moving_count: slow.length
-                    },
-                    by_warehouse: ['Москва', 'Казань', 'Краснодар'].map(w => ({warehouse: w, stock: stocks.filter(s => s.warehouse_name === w).reduce((a, b) => a + b.stock, 0)})),
-                    low_stock: low,
-                    slow_moving: slow
+                    summary: {total_revenue: totalRevenue, total_fees: totalFees, total_storage: totalStorage, total_logistics: totalLogistics, total_penalties: 0, net_profit: profit, margin: +(profit / totalRevenue * 100).toFixed(1)},
+                    daily_breakdown: demoPnl,
+                    by_category: []
+                };
+            },
+            '/api/analytics/stocks': () => {
+                const warehouses = ['Коледино', 'Подольск', 'Казань', 'Краснодар'];
+                const stocks = demoProducts.map((p, i) => ({supplier_article: p.name, warehouse_name: warehouses[i % warehouses.length], stock: 4 + ((i * 23) % 140), price: p.price}));
+                return {
+                    summary: {total_stock: stocks.reduce((s, p) => s + p.stock, 0), total_value: stocks.reduce((s, p) => s + p.stock * p.price, 0), avg_days_without_sales: 12, low_stock_count: stocks.filter(p => p.stock < 10).length, slow_moving_count: stocks.filter(p => p.stock > 100).length},
+                    by_warehouse: warehouses.map(w => ({warehouse: w, stock: stocks.filter(s => s.warehouse_name === w).reduce((a, b) => a + b.stock, 0)})),
+                    low_stock: stocks.filter(p => p.stock < 10),
+                    slow_moving: []
                 };
             },
             '/api/analytics/forecast': () => {
-                const forecast = seq(30, i => ({
-                    date: day(i + 1),
+                const forecast = Array.from({length: 30}, (_, i) => ({
+                    date: dateShift(i + 1),
                     products: demoProducts.map((p, pi) => {
-                        const predicted_orders = Math.max(1, Math.round(p.orders / 30 * (0.75 + ((i + pi) % 9) / 20)));
+                        const predicted_orders = Math.max(1, Math.round(p.orders / 30 * (0.72 + ((i + pi) % 8) / 20)));
                         return {nm_id: p.nm_id, name: p.name, predicted_orders, predicted_revenue: predicted_orders * p.price};
                     })
                 }));
@@ -272,51 +265,20 @@
                 };
             },
             '/api/analytics/competitors': () => ({
-                competitors: demoProducts.slice(0, 5).flatMap((p, i) => [1, 2, 3].map(n => ({
-                    product_name: `${p.name} (конкурент ${n})`,
-                    price: p.price + (n - 2) * 180 + i * 35,
-                    rating: (4.0 + ((i + n) % 9) / 10).toFixed(1),
-                    reviews: 70 + i * 90 + n * 23,
-                    market_share: (3.5 + i * 1.4 + n * 0.8).toFixed(1)
-                }))),
-                price_comparison: demoProducts.slice(0, 5).map((p, i) => ({
-                    name: p.name,
-                    our_price: p.price,
-                    avg_competitor_price: p.price + (i - 2) * 120,
-                    position: i % 3 === 0 ? 'cheaper' : i % 3 === 1 ? 'same' : 'more_expensive'
-                }))
+                price_comparison: demoProducts.map((p, i) => ({name: p.name, our_price: p.price, avg_competitor_price: p.price + (i - 3) * 180, position: i % 3 === 0 ? 'cheaper' : i % 3 === 1 ? 'same' : 'more_expensive'})),
+                competitors: demoProducts.flatMap((p, i) => [1, 2].map(n => ({product_name: `${p.name} (конкурент ${n})`, price: p.price + (n - 1) * 260 - i * 35, rating: +(4 + ((i + n) % 8) / 10).toFixed(1), reviews: 40 + i * 37 + n * 22, market_share: +(2.5 + i * 0.8 + n * 1.2).toFixed(1)})))
             }),
             '/api/analytics/returns': () => {
-                const reasons = [
-                    ['Не подошёл размер', 126],
-                    ['Не понравился товар', 84],
-                    ['Брак / повреждение', 47],
-                    ['Не соответствует описанию', 39],
-                    ['Долгая доставка', 24],
-                    ['Нашёл дешевле', 18],
-                    ['Передумал покупать', 32]
-                ];
-                const totalReturns = reasons.reduce((s, r) => s + r[1], 0);
-                const byProduct = demoProducts.slice(0, 5).map((p, i) => {
-                    const returns = 18 + i * 9;
-                    return {nm_id: p.nm_id, name: p.name, orders: p.orders, returns, return_rate: +(returns / p.orders * 100).toFixed(1), return_cost: returns * p.price};
-                });
+                const daily = Array.from({length: 30}, (_, i) => ({date: dateShift(i - 29), returns: 2 + ((i * 7) % 14), return_cost: (2 + ((i * 7) % 14)) * (1200 + ((i * 193) % 1800))}));
+                const totalReturns = daily.reduce((s, d) => s + d.returns, 0);
+                const totalCost = daily.reduce((s, d) => s + d.return_cost, 0);
+                const totalOrders = demoProducts.reduce((s, p) => s + p.orders, 0);
                 return {
-                    summary: {
-                        total_returns: totalReturns,
-                        return_rate: 2.1,
-                        total_orders: demoProducts.reduce((s, p) => s + p.orders, 0),
-                        avg_return_cost: Math.round(byProduct.reduce((s, p) => s + p.return_cost, 0) / byProduct.length),
-                        total_return_cost: byProduct.reduce((s, p) => s + p.return_cost, 0)
-                    },
-                    reasons: reasons.map(([reason, count]) => ({reason, count, percent: +(count / totalReturns * 100).toFixed(1)})),
-                    by_product: byProduct,
-                    daily: seq(30, i => ({date: day(i - 29), returns: 15 + ((i * 7) % 35), return_cost: (15 + ((i * 7) % 35)) * (700 + ((i * 113) % 1100))})),
-                    recommendations: [
-                        'Топ причина возвратов — размер. Добавьте подробную таблицу размеров на карточку товара',
-                        'Брак — вторая причина. Проверьте качество упаковки перед отправкой',
-                        'Снизьте возвраты за счёт качественных фото и подробного описания'
-                    ]
+                    summary: {total_returns: totalReturns, return_rate: +(totalReturns / totalOrders * 100).toFixed(1), total_return_cost: totalCost, avg_return_cost: Math.round(totalCost / totalReturns), total_orders: totalOrders},
+                    daily,
+                    reasons: [{reason:'Не подошёл размер',count:Math.round(totalReturns * 0.35),percent:35},{reason:'Не понравился товар',count:Math.round(totalReturns * 0.25),percent:25},{reason:'Дефект / брак',count:Math.round(totalReturns * 0.2),percent:20},{reason:'Не соответствует описанию',count:Math.round(totalReturns * 0.12),percent:12},{reason:'Другое',count:Math.round(totalReturns * 0.08),percent:8}],
+                    by_product: demoProducts.map((p, i) => ({name: p.name, orders: p.orders, returns: 4 + i * 3, return_rate: +((4 + i * 3) / p.orders * 100).toFixed(1)})),
+                    recommendations: ['Улучшите описание размеров — 35% возвратов из-за размера', 'Добавьте больше фото товара для снижения возвратов', 'Проверяйте качество перед отправкой — 20% брак']
                 };
             }
         };
@@ -327,7 +289,10 @@
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 return await response.json();
             } catch (error) {
-                if (demo[url]) return demo[url]();
+                if (demoApi[url]) {
+                    staticMode = true;
+                    return demoApi[url]();
+                }
                 throw error;
             }
         }
@@ -362,6 +327,59 @@
         
         function setPeriod(d) { currentPeriod = d; reload(); }
         function setYMetric(v) { currentYMetric = v; reload(); }
+        
+        function demoBanner() {
+            if (appConfig.has_token) {
+                return `<div class="real-banner">
+                    <span class="real-text">✅ Подключено к Wildberries API — данные в реальном времени</span>
+                    <button class="btn-disconnect" onclick="disconnectToken()">Отключить</button>
+                </div>`;
+            }
+            return `<div class="demo-banner">
+                <div class="demo-title">🎯 Режим демо — тестовые данные</div>
+                <div class="demo-desc">${staticMode ? 'Сайт открыт на GitHub Pages в статическом демо-режиме. Для подключения WB-токена запустите backend из репозитория или разверните его на сервере.' : 'Вы просматриваете демонстрационные данные. Подключите свой API-токен Wildberries для просмотра реальной аналитики вашего магазина.'}</div>
+                <div class="token-row">
+                    <input type="password" id="apiTokenInput" placeholder="Вставьте API-токен из WB (Настройки → Доступ к API)">
+                    <button class="btn-connect" onclick="connectToken()">Подключить</button>
+                </div>
+                <div id="tokenMsg" style="margin-top:8px;font-size:12px"></div>
+            </div>`;
+        }
+        
+        async function connectToken() {
+            const token = $('apiTokenInput').value.trim();
+            if (!token) {
+                $('tokenMsg').innerHTML = '<span style="color:#ef4444">Введите токен</span>';
+                return;
+            }
+            $('tokenMsg').innerHTML = '<span style="color:#9ca3af">Подключение...</span>';
+            try {
+                const res = await fetch('/api/settings/token', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({token})
+                });
+                if (res.ok) {
+                    appConfig.has_token = true;
+                    appConfig.mode = 'real';
+                    $('tokenMsg').innerHTML = '<span style="color:#10b981">Подключено! Загрузка данных...</span>';
+                    setTimeout(() => reload(), 500);
+                } else {
+                    const err = await res.json();
+                    $('tokenMsg').innerHTML = `<span style="color:#ef4444">Ошибка: ${err.detail || 'неверный токен'}</span>`;
+                }
+            } catch (e) {
+                $('tokenMsg').innerHTML = `<span style="color:#ef4444">${staticMode ? 'На GitHub Pages токен не подключается: нужен запущенный backend.' : 'Ошибка сети'}</span>`;
+            }
+        }
+        
+        async function disconnectToken() {
+            if (!confirm('Отключить API-токен? Данные переключатся на демо.')) return;
+            await fetch('/api/settings/token', { method: 'DELETE' });
+            appConfig.has_token = false;
+            appConfig.mode = 'mock';
+            reload();
+        }
         
         function drawChart(data, getColor) {
             const vals = data.map(d => d[currentYMetric] || d.revenue || d.orders);
@@ -471,6 +489,7 @@
         }
         
         async function loadDashboard() {
+            appConfig = await get('/api/config');
             const d = await get('/api/dashboard');
             const s = d.summary;
             const trend = d.revenue_trend.slice(-currentPeriod);
@@ -486,6 +505,7 @@
             }));
             
             $('app').innerHTML = `
+                ${demoBanner()}
                 <div class="page-title">Обзор бизнеса</div>
                 
                 <div class="stats-row">
@@ -556,6 +576,7 @@
         async function loadProducts() {
             const d = await get('/api/products');
             $('app').innerHTML = `
+                ${demoBanner()}
                 <div class="page-title">Каталог товаров (${d.products.length})</div>
                 <div class="card">
                     <table>
@@ -596,6 +617,7 @@
             const profitPercent = periodRevenue > 0 ? ((periodProfit / periodRevenue) * 100).toFixed(1) : 0;
             
             $('app').innerHTML = `
+                ${demoBanner()}
                 <div class="page-title">P&L Отчёт</div>
                 
                 <div class="stats-row">
@@ -662,6 +684,7 @@
             const d = await get('/api/analytics/stocks');
             const s = d.summary;
             $('app').innerHTML = `
+                ${demoBanner()}
                 <div class="page-title">Управление остатками</div>
                 <div class="stats-row">
                     <div class="stat-card"><div class="stat-label">Всего товаров</div><div class="stat-value">${fmt(s.total_stock)}</div><div class="stat-sub">штук</div></div>
@@ -722,6 +745,7 @@
             }
             
             $('app').innerHTML = `
+                ${demoBanner()}
                 <div class="page-title">Прогноз продаж</div>
                 
                 <div style="margin-bottom:16px">
@@ -770,6 +794,7 @@
         async function loadCompetitors() {
             const d = await get('/api/analytics/competitors');
             $('app').innerHTML = `
+                ${demoBanner()}
                 <div class="page-title">Анализ конкурентов</div>
                 <div class="card">
                     <div class="card-header"><div class="card-title">Сравнение цен</div></div>
@@ -801,6 +826,7 @@
             const maxReturns = Math.max(...filteredDaily.map(r => r.returns)) || 1;
             
             $('app').innerHTML = `
+                ${demoBanner()}
                 <div class="page-title">Анализ возвратов</div>
                 
                 <div class="stats-row">
